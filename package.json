@@ -1,0 +1,17 @@
+{
+	"name": "wise-token",
+	"version": "1.0.0",
+	"description": "",
+	"main": "index.js",
+	"scripts": {
+		"test": "echo \"Error: no test specified\" && exit 1"
+	},
+	"dependencies": {
+		"axios": "^0.24.0",
+		"casper-js-sdk": "2.4.1",
+		"np": "^7.5.0",
+		"ts-results": "^3.3.0"
+	},
+	"author": "",
+	"license": "ISC"
+}
