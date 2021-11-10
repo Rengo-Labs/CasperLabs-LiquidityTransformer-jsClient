@@ -32,7 +32,7 @@ class LIQUIDITYClient {
 		private nodeAddress: string,
 		private chainName: string,
 		private eventStreamAddress?: string
-	) { }
+	) {}
 
 	public async install(
 		keys: Keys.AsymmetricKey,
@@ -618,6 +618,165 @@ class LIQUIDITYClient {
 		} else {
 			throw Error("Invalid Deploy");
 		}
+	}
+
+	/*=========================Getters=========================*/
+
+	public async payoutInvestorAddress(investorAddress: CLPublicKey) {
+		const investor_address = Buffer.from(
+			investorAddress.toAccountHash()
+		).toString("hex");
+
+		const result = await utils.contractDictionaryGetter(
+			this.nodeAddress,
+			investor_address,
+			"payout_investor_address"
+		);
+		const maybeValue = result.value().unwrap();
+		return maybeValue.value().toString();
+	}
+
+	public async payoutReferralAddress(referralAddress: CLPublicKey) {
+		const referral_address = Buffer.from(
+			referralAddress.toAccountHash()
+		).toString("hex");
+
+		const result = await utils.contractDictionaryGetter(
+			this.nodeAddress,
+			referral_address,
+			"payout_referral_address"
+		);
+		const maybeValue = result.value().unwrap();
+		return maybeValue.value().toString();
+	}
+
+	public async myInvestmentAmount(investment_day: string) {
+		//Cannot pass u256 in the argument
+		// const investment_day = CLValueBuilder.u256(investmentDay);
+
+		const result = await utils.contractDictionaryGetter(
+			this.nodeAddress,
+			investment_day,
+			"my_investment_amount"
+		);
+		const maybeValue = result.value().unwrap();
+		return maybeValue.value().toString();
+	}
+
+	public async myInvestmentAmountAllDays() {
+		const result = await utils.contractDictionaryGetter(
+			this.nodeAddress,
+			this.contractHash,
+			"my_investment_amount_all_days"
+		);
+		return result.value().toString();
+	}
+
+	public async myTotalInvestmentAmount() {
+		const result = await utils.contractDictionaryGetter(
+			this.nodeAddress,
+			this.contractHash,
+			"my_total_investment_amount"
+		);
+		return result.value().toString();
+	}
+
+	public async investorsOnDay(investment_day: string) {
+		//Cannot pass u256 in the argument
+		// const investment_day = CLValueBuilder.u256(investmentDay);
+
+		const result = await utils.contractDictionaryGetter(
+			this.nodeAddress,
+			investment_day,
+			"investors_on_day"
+		);
+		const maybeValue = result.value().unwrap();
+		return maybeValue.value().toString();
+	}
+
+	public async investorsOnAllDays() {
+		const result = await utils.contractDictionaryGetter(
+			this.nodeAddress,
+			this.contractHash,
+			"investors_on_all_days"
+		);
+		return result.value().toString();
+	}
+
+	public async investmentsOnAllDays() {
+		const result = await utils.contractDictionaryGetter(
+			this.nodeAddress,
+			this.contractHash,
+			"investments_on_all_days"
+		);
+		return result.value().toString();
+	}
+
+	public async supplyOnAllDays() {
+		const result = await utils.contractDictionaryGetter(
+			this.nodeAddress,
+			this.contractHash,
+			"supply_on_all_days"
+		);
+		return result.value().toString();
+	}
+
+	public async preparePath(tokenAddress: CLPublicKey) {
+		const token_address = Buffer.from(tokenAddress.toAccountHash()).toString(
+			"hex"
+		);
+
+		const result = await utils.contractDictionaryGetter(
+			this.nodeAddress,
+			token_address,
+			"prepare_path"
+		);
+		const maybeValue = result.value().unwrap();
+		return maybeValue.value().toString();
+	}
+
+	public async teamContribution(team_amount: string) {
+		//Cannot pass u256 in the argument
+		// const team_amount = CLValueBuilder.u256(teamAmount);
+
+		const result = await utils.contractDictionaryGetter(
+			this.nodeAddress,
+			team_amount,
+			"team_contribution"
+		);
+		const maybeValue = result.value().unwrap();
+		return maybeValue.value().toString();
+	}
+
+	public async fundedDays() {
+		const result = await utils.contractDictionaryGetter(
+			this.nodeAddress,
+			this.contractHash,
+			"funded_days"
+		);
+		return result.value().toString();
+	}
+
+	public async calculateDailyRatio(investment_day: string) {
+		//Cannot pass u256 in the argument
+		// const investment_day = CLValueBuilder.u256(investmentDay);
+
+		const result = await utils.contractDictionaryGetter(
+			this.nodeAddress,
+			investment_day,
+			"calculate_daily_ratio"
+		);
+		const maybeValue = result.value().unwrap();
+		return maybeValue.value().toString();
+	}
+
+	public async currentWiseDay() {
+		const result = await utils.contractDictionaryGetter(
+			this.nodeAddress,
+			this.contractHash,
+			"current_wise_day"
+		);
+		return result.value().toString();
 	}
 	// public async feeTo() {
 	// 	const result = await contractSimpleGetter(
