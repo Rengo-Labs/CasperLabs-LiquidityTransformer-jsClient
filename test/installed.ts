@@ -11,7 +11,7 @@ import {
 	CLPublicKeyType,
 } from "casper-js-sdk";
 
-const { FACTORYEvents } = constants;
+const { LIQUIDITYEvents } = constants;
 
 const {
 	NODE_ADDRESS,
@@ -44,9 +44,9 @@ const test = async () => {
 
 	const listener = factory.onEvent(
 		[
-			FACTORYEvents.SetFeeTo,
-			FACTORYEvents.SetFeeToSetter,
-			FACTORYEvents.CreatePair,
+			LIQUIDITYEvents.SetFeeTo,
+			LIQUIDITYEvents.SetFeeToSetter,
+			LIQUIDITYEvents.CreatePair,
 		],
 		(eventName, deploy, result) => {
 			if (deploy.success) {

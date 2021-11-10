@@ -55,29 +55,29 @@ export const getStateRootHash = async (nodeAddress: string) => {
 	}
 };
 
-// export const getAccountInfo = async (
-//   nodeAddress: string,
-//   publicKey: CLPublicKey
-// ) => {
-//   const stateRootHash = await getStateRootHash(nodeAddress);
-//   const client = new CasperServiceByJsonRPC(nodeAddress);
-//   const accountHash = publicKey.toAccountHashStr();
-//   const blockState = await client.getBlockState(stateRootHash, accountHash, []);
-//   return blockState.Account;
-// };
+export const getAccountInfo = async (
+	nodeAddress: string,
+	publicKey: CLPublicKey
+) => {
+	const stateRootHash = await getStateRootHash(nodeAddress);
+	const client = new CasperServiceByJsonRPC(nodeAddress);
+	const accountHash = publicKey.toAccountHashStr();
+	const blockState = await client.getBlockState(stateRootHash, accountHash, []);
+	return blockState.Account;
+};
 
 /**
  * Returns a value under an on-chain account's storage.
  * @param accountInfo - On-chain account's info.
  * @param namedKey - A named key associated with an on-chain account.
  */
-// export const getAccountNamedKeyValue = (accountInfo: any, namedKey: string) => {
-//   const found = accountInfo.namedKeys.find((i: any) => i.name === namedKey);
-//   if (found) {
-//     return found.key;
-//   }
-//   return undefined;
-// };
+export const getAccountNamedKeyValue = (accountInfo: any, namedKey: string) => {
+	const found = accountInfo.namedKeys.find((i: any) => i.name === namedKey);
+	if (found) {
+		return found.key;
+	}
+	return undefined;
+};
 
 export const getContractData = async (
 	nodeAddress: string,

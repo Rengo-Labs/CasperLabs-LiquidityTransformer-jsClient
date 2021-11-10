@@ -16,23 +16,23 @@ import {
 	Keys,
 	RuntimeArgs,
 } from "casper-js-sdk";
-// import { FACTORYEvents } from "./constants";
+import { LIQUIDITYEvents } from "./constants";
 import * as utils from "./utils";
-// import { RecipientType, IPendingDeploy } from "./types";
+import { RecipientType, IPendingDeploy } from "./types";
 // const axios = require("axios").default;
 
 class LIQUIDITYClient {
 	private contractHash: string;
 	private contractPackageHash: string;
 
-	private isListenin; // paymentAmount,
-	g = false;
-	// private pendingDeploys: IPendingDeploy[] = [];
+	private isListening = false;
+	private pendingDeploys: IPendingDeploy[] = [];
 
 	constructor(
 		private nodeAddress: string,
-		private chainName: string // private eventStreamAddress?: string
-	) {}
+		private chainName: string,
+		private eventStreamAddress?: string
+	) { }
 
 	public async install(
 		keys: Keys.AsymmetricKey,
@@ -43,13 +43,20 @@ class LIQUIDITYClient {
 		paymentAmount: string,
 		wasmPath: string
 	) {
+		const usingProvableContractHash = new CLByteArray(
+			Uint8Array.from(Buffer.from(usingProvable, "hex"))
+		);
+		const wiseTokenContractHash = new CLByteArray(
+			Uint8Array.from(Buffer.from(wiseToken, "hex"))
+		);
+		const uniswapPairContractHash = new CLByteArray(
+			Uint8Array.from(Buffer.from(uniswapPair, "hex"))
+		);
 		const runtimeArgs = RuntimeArgs.fromMap({
-			using_provable: CLValueBuilder.string(usingProvable),
-			wise_token: CLValueBuilder.string(wiseToken),
-			uniswap_pair: CLValueBuilder.string(uniswapPair),
+			using_provable: CLValueBuilder.key(usingProvableContractHash),
+			wise_token: CLValueBuilder.key(wiseTokenContractHash),
+			uniswap_pair: CLValueBuilder.key(uniswapPairContractHash),
 			contract_name: CLValueBuilder.string(contractName),
-			// fee_to: utils.createRecipientAddress(feeTo),
-			// fee_to_setter: utils.createRecipientAddress(feeToSetter),
 		});
 
 		const deployHash = await installWasmFile({
@@ -69,17 +76,18 @@ class LIQUIDITYClient {
 	}
 
 	public async _reserve_Wise(
+		keys: Keys.AsymmetricKey,
 		investmentDays: string,
 		referralAddress: string,
 		amount: string,
-		keys: Keys.AsymmetricKey,
 		paymentAmount: string
 	) {
 		const referralAdd = new CLByteArray(
 			Uint8Array.from(Buffer.from(referralAddress, "hex"))
 		);
 		const runtimeArgs = RuntimeArgs.fromMap({
-			investment_day: CLValueBuilder.u256(investmentDays),
+			//ISSUE
+			investment_days: CLValueBuilder.u256(investmentDays),
 			referral_address: CLValueBuilder.key(referralAdd),
 			amount: CLValueBuilder.u256(amount),
 		});
@@ -95,7 +103,7 @@ class LIQUIDITYClient {
 		});
 
 		if (deployHash !== null) {
-			// this.addPendingDeploy(FACTORYEvents.SetFeeTo, deployHash);
+			// this.addPendingDeploy(LIQUIDITYEvents.SetFeeTo, deployHash);
 			return deployHash;
 		} else {
 			throw Error("Invalid Deploy");
@@ -103,11 +111,11 @@ class LIQUIDITYClient {
 	}
 
 	public async reserveWiseWithToken(
+		keys: Keys.AsymmetricKey,
 		tokenAddress: string,
+		tokenAmount: string,
 		investmentDays: string,
 		referralAddress: string,
-		tokenAmount: string,
-		keys: Keys.AsymmetricKey,
 		paymentAmount: string
 	) {
 		const tokenContractHash = new CLByteArray(
@@ -120,6 +128,7 @@ class LIQUIDITYClient {
 		const runtimeArgs = RuntimeArgs.fromMap({
 			token_address: CLValueBuilder.key(tokenContractHash),
 			token_amount: CLValueBuilder.u256(tokenAmount),
+			//ISSUE
 			investment_day: CLValueBuilder.u256(investmentDays),
 			referral_address: CLValueBuilder.key(referralAdd),
 		});
@@ -135,7 +144,7 @@ class LIQUIDITYClient {
 		});
 
 		if (deployHash !== null) {
-			// this.addPendingDeploy(FACTORYEvents.SetFeeTo, deployHash);
+			// this.addPendingDeploy(LIQUIDITYEvents.SetFeeTo, deployHash);
 			return deployHash;
 		} else {
 			throw Error("Invalid Deploy");
@@ -143,11 +152,11 @@ class LIQUIDITYClient {
 	}
 
 	public async reserveWise(
+		keys: Keys.AsymmetricKey,
 		investmentDays: string,
 		referralAddress: string,
 		senderAddress: string,
 		senderValue: string,
-		keys: Keys.AsymmetricKey,
 		paymentAmount: string
 	) {
 		const senderAdd = new CLByteArray(
@@ -158,7 +167,8 @@ class LIQUIDITYClient {
 			Uint8Array.from(Buffer.from(referralAddress, "hex"))
 		);
 		const runtimeArgs = RuntimeArgs.fromMap({
-			investment_day: CLValueBuilder.u256(investmentDays),
+			//ISSUE
+			investment_dayd: CLValueBuilder.u256(investmentDays),
 			referral_address: CLValueBuilder.key(referralAdd),
 			sender_address: CLValueBuilder.key(senderAdd),
 			sender_value: CLValueBuilder.u256(senderValue),
@@ -175,7 +185,7 @@ class LIQUIDITYClient {
 		});
 
 		if (deployHash !== null) {
-			// this.addPendingDeploy(FACTORYEvents.SetFeeTo, deployHash);
+			// this.addPendingDeploy(LIQUIDITYEvents.SetFeeTo, deployHash);
 			return deployHash;
 		} else {
 			throw Error("Invalid Deploy");
@@ -183,10 +193,10 @@ class LIQUIDITYClient {
 	}
 
 	public async addBalance(
-		senderAddress: string,
-		investmentDays: string,
-		investmentBalance: string,
 		keys: Keys.AsymmetricKey,
+		senderAddress: string,
+		investmentDay: string,
+		investmentBalance: string,
 		paymentAmount: string
 	) {
 		const senderAdd = new CLByteArray(
@@ -195,7 +205,7 @@ class LIQUIDITYClient {
 
 		const runtimeArgs = RuntimeArgs.fromMap({
 			sender_address: CLValueBuilder.key(senderAdd),
-			investment_day: CLValueBuilder.u256(investmentDays),
+			investment_day: CLValueBuilder.u256(investmentDay),
 			investment_balance: CLValueBuilder.u256(investmentBalance),
 		});
 
@@ -210,7 +220,7 @@ class LIQUIDITYClient {
 		});
 
 		if (deployHash !== null) {
-			// this.addPendingDeploy(FACTORYEvents.SetFeeTo, deployHash);
+			// this.addPendingDeploy(LIQUIDITYEvents.SetFeeTo, deployHash);
 			return deployHash;
 		} else {
 			throw Error("Invalid Deploy");
@@ -218,12 +228,12 @@ class LIQUIDITYClient {
 	}
 
 	public async generateSupply(
-		investmentDays: string,
 		keys: Keys.AsymmetricKey,
+		investmentDay: string,
 		paymentAmount: string
 	) {
 		const runtimeArgs = RuntimeArgs.fromMap({
-			investment_day: CLValueBuilder.u256(investmentDays),
+			investment_day: CLValueBuilder.u64(investmentDay),
 		});
 
 		const deployHash = await contractCall({
@@ -237,7 +247,7 @@ class LIQUIDITYClient {
 		});
 
 		if (deployHash !== null) {
-			// this.addPendingDeploy(FACTORYEvents.SetFeeTo, deployHash);
+			// this.addPendingDeploy(LIQUIDITYEvents.SetFeeTo, deployHash);
 			return deployHash;
 		} else {
 			throw Error("Invalid Deploy");
@@ -245,12 +255,12 @@ class LIQUIDITYClient {
 	}
 
 	public async generateStaticSupply(
-		investmentDays: string,
 		keys: Keys.AsymmetricKey,
+		investmentDay: string,
 		paymentAmount: string
 	) {
 		const runtimeArgs = RuntimeArgs.fromMap({
-			investment_day: CLValueBuilder.u256(investmentDays),
+			investment_day: CLValueBuilder.u256(investmentDay),
 		});
 
 		const deployHash = await contractCall({
@@ -264,7 +274,7 @@ class LIQUIDITYClient {
 		});
 
 		if (deployHash !== null) {
-			// this.addPendingDeploy(FACTORYEvents.SetFeeTo, deployHash);
+			// this.addPendingDeploy(LIQUIDITYEvents.SetFeeTo, deployHash);
 			return deployHash;
 		} else {
 			throw Error("Invalid Deploy");
@@ -272,12 +282,12 @@ class LIQUIDITYClient {
 	}
 
 	public async generateRandomSupply(
-		investmentDays: string,
 		keys: Keys.AsymmetricKey,
+		investmentDay: string,
 		paymentAmount: string
 	) {
 		const runtimeArgs = RuntimeArgs.fromMap({
-			investment_day: CLValueBuilder.u256(investmentDays),
+			investment_day: CLValueBuilder.u256(investmentDay),
 		});
 
 		const deployHash = await contractCall({
@@ -291,7 +301,7 @@ class LIQUIDITYClient {
 		});
 
 		if (deployHash !== null) {
-			// this.addPendingDeploy(FACTORYEvents.SetFeeTo, deployHash);
+			// this.addPendingDeploy(LIQUIDITYEvents.SetFeeTo, deployHash);
 			return deployHash;
 		} else {
 			throw Error("Invalid Deploy");
@@ -299,10 +309,10 @@ class LIQUIDITYClient {
 	}
 
 	public async callBack(
+		keys: Keys.AsymmetricKey,
 		queryId: string,
 		results: string,
 		proofs: string,
-		keys: Keys.AsymmetricKey,
 		paymentAmount: string
 	) {
 		const runtimeArgs = RuntimeArgs.fromMap({
@@ -322,7 +332,7 @@ class LIQUIDITYClient {
 		});
 
 		if (deployHash !== null) {
-			// this.addPendingDeploy(FACTORYEvents.SetFeeTo, deployHash);
+			// this.addPendingDeploy(LIQUIDITYEvents.SetFeeTo, deployHash);
 			return deployHash;
 		} else {
 			throw Error("Invalid Deploy");
@@ -343,7 +353,7 @@ class LIQUIDITYClient {
 		});
 
 		if (deployHash !== null) {
-			// this.addPendingDeploy(FACTORYEvents.SetFeeTo, deployHash);
+			// this.addPendingDeploy(LIQUIDITYEvents.SetFeeTo, deployHash);
 			return deployHash;
 		} else {
 			throw Error("Invalid Deploy");
@@ -351,9 +361,9 @@ class LIQUIDITYClient {
 	}
 
 	public async prepareReferralBonuses(
+		keys: Keys.AsymmetricKey,
 		referralBatchFrom: string,
 		referralBatchTo: string,
-		keys: Keys.AsymmetricKey,
 		paymentAmount: string
 	) {
 		const runtimeArgs = RuntimeArgs.fromMap({
@@ -372,7 +382,7 @@ class LIQUIDITYClient {
 		});
 
 		if (deployHash !== null) {
-			// this.addPendingDeploy(FACTORYEvents.SetFeeTo, deployHash);
+			// this.addPendingDeploy(LIQUIDITYEvents.SetFeeTo, deployHash);
 			return deployHash;
 		} else {
 			throw Error("Invalid Deploy");
@@ -380,10 +390,10 @@ class LIQUIDITYClient {
 	}
 
 	public async fullReferralBonus(
+		keys: Keys.AsymmetricKey,
 		referralAddress: string,
 		referralAmount: string,
-		ratios: string,
-		keys: Keys.AsymmetricKey,
+		ratio: string,
 		paymentAmount: string
 	) {
 		const referralAdd = new CLByteArray(
@@ -392,7 +402,7 @@ class LIQUIDITYClient {
 		const runtimeArgs = RuntimeArgs.fromMap({
 			referral_address: CLValueBuilder.key(referralAdd),
 			referral_amount: CLValueBuilder.u256(referralAmount),
-			ratio: CLValueBuilder.u256(ratios),
+			ratio: CLValueBuilder.u256(ratio),
 		});
 
 		const deployHash = await contractCall({
@@ -406,7 +416,7 @@ class LIQUIDITYClient {
 		});
 
 		if (deployHash !== null) {
-			// this.addPendingDeploy(FACTORYEvents.SetFeeTo, deployHash);
+			// this.addPendingDeploy(LIQUIDITYEvents.SetFeeTo, deployHash);
 			return deployHash;
 		} else {
 			throw Error("Invalid Deploy");
@@ -414,9 +424,9 @@ class LIQUIDITYClient {
 	}
 
 	public async familyReferralBonus(
-		referralAddress: string,
-		ratios: string,
 		keys: Keys.AsymmetricKey,
+		referralAddress: string,
+		ratio: string,
 		paymentAmount: string
 	) {
 		const referralAdd = new CLByteArray(
@@ -424,7 +434,7 @@ class LIQUIDITYClient {
 		);
 		const runtimeArgs = RuntimeArgs.fromMap({
 			referral_address: CLValueBuilder.key(referralAdd),
-			ratio: CLValueBuilder.u256(ratios),
+			ratio: CLValueBuilder.u256(ratio),
 		});
 
 		const deployHash = await contractCall({
@@ -438,7 +448,7 @@ class LIQUIDITYClient {
 		});
 
 		if (deployHash !== null) {
-			// this.addPendingDeploy(FACTORYEvents.SetFeeTo, deployHash);
+			// this.addPendingDeploy(LIQUIDITYEvents.SetFeeTo, deployHash);
 			return deployHash;
 		} else {
 			throw Error("Invalid Deploy");
@@ -462,7 +472,7 @@ class LIQUIDITYClient {
 		});
 
 		if (deployHash !== null) {
-			// this.addPendingDeploy(FACTORYEvents.SetFeeTo, deployHash);
+			// this.addPendingDeploy(LIQUIDITYEvents.SetFeeTo, deployHash);
 			return deployHash;
 		} else {
 			throw Error("Invalid Deploy");
@@ -483,7 +493,7 @@ class LIQUIDITYClient {
 		});
 
 		if (deployHash !== null) {
-			// this.addPendingDeploy(FACTORYEvents.SetFeeTo, deployHash);
+			// this.addPendingDeploy(LIQUIDITYEvents.SetFeeTo, deployHash);
 			return deployHash;
 		} else {
 			throw Error("Invalid Deploy");
@@ -491,10 +501,10 @@ class LIQUIDITYClient {
 	}
 
 	public async payoutInvestmentDayBatch(
+		keys: Keys.AsymmetricKey,
 		investmentDays: string,
 		investorBatchFrom: string,
 		investorBatchTo: string,
-		keys: Keys.AsymmetricKey,
 		paymentAmount: string
 	) {
 		const runtimeArgs = RuntimeArgs.fromMap({
@@ -514,7 +524,7 @@ class LIQUIDITYClient {
 		});
 
 		if (deployHash !== null) {
-			// this.addPendingDeploy(FACTORYEvents.SetFeeTo, deployHash);
+			// this.addPendingDeploy(LIQUIDITYEvents.SetFeeTo, deployHash);
 			return deployHash;
 		} else {
 			throw Error("Invalid Deploy");
@@ -522,9 +532,9 @@ class LIQUIDITYClient {
 	}
 
 	public async payoutReferralBatch(
+		keys: Keys.AsymmetricKey,
 		referralBatchFrom: string,
 		referralBatchTo: string,
-		keys: Keys.AsymmetricKey,
 		paymentAmount: string
 	) {
 		const runtimeArgs = RuntimeArgs.fromMap({
@@ -543,7 +553,7 @@ class LIQUIDITYClient {
 		});
 
 		if (deployHash !== null) {
-			// this.addPendingDeploy(FACTORYEvents.SetFeeTo, deployHash);
+			// this.addPendingDeploy(LIQUIDITYEvents.SetFeeTo, deployHash);
 			return deployHash;
 		} else {
 			throw Error("Invalid Deploy");
@@ -551,14 +561,15 @@ class LIQUIDITYClient {
 	}
 
 	public async checkInvestmentDays(
+		keys: Keys.AsymmetricKey,
 		investmentDays: string,
 		currentWiseDay: string,
-		keys: Keys.AsymmetricKey,
 		paymentAmount: string
 	) {
 		const runtimeArgs = RuntimeArgs.fromMap({
+			// ISSUE
 			investment_days: CLValueBuilder.u256(investmentDays),
-			current_wise_day: CLValueBuilder.u256(currentWiseDay),
+			current_wise_day: CLValueBuilder.u64(currentWiseDay),
 		});
 
 		const deployHash = await contractCall({
@@ -572,7 +583,7 @@ class LIQUIDITYClient {
 		});
 
 		if (deployHash !== null) {
-			// this.addPendingDeploy(FACTORYEvents.SetFeeTo, deployHash);
+			// this.addPendingDeploy(LIQUIDITYEvents.SetFeeTo, deployHash);
 			return deployHash;
 		} else {
 			throw Error("Invalid Deploy");
@@ -580,14 +591,15 @@ class LIQUIDITYClient {
 	}
 
 	public async requestTeamFunds(
+		keys: Keys.AsymmetricKey,
 		Amount: string,
 		teamAddressPurse: string,
-		keys: Keys.AsymmetricKey,
 		paymentAmount: string
 	) {
 		const runtimeArgs = RuntimeArgs.fromMap({
 			amount: CLValueBuilder.u256(Amount),
-			team_address_purse: CLValueBuilder.uref(teamAddressPurse),
+			//ISSUE
+			// team_address_purse: CLValueBuilder.uref(teamAddressPurse),
 		});
 
 		const deployHash = await contractCall({
@@ -601,7 +613,7 @@ class LIQUIDITYClient {
 		});
 
 		if (deployHash !== null) {
-			// this.addPendingDeploy(FACTORYEvents.SetFeeTo, deployHash);
+			// this.addPendingDeploy(LIQUIDITYEvents.SetFeeTo, deployHash);
 			return deployHash;
 		} else {
 			throw Error("Invalid Deploy");
@@ -655,7 +667,7 @@ class LIQUIDITYClient {
 	// 	});
 
 	// 	if (deployHash !== null) {
-	// 		this.addPendingDeploy(FACTORYEvents.SetFeeTo, deployHash);
+	// 		this.addPendingDeploy(LIQUIDITYEvents.SetFeeTo, deployHash);
 	// 		return deployHash;
 	// 	} else {
 	// 		throw Error("Invalid Deploy");
