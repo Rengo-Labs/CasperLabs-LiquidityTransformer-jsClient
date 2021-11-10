@@ -1,9 +1,9 @@
-import FACTORYClient from "./factory";
+import LIQUIDITYClient from "./liquidity";
 import * as utils from "./utils";
 import * as constants from "./constants";
 
 export {
-    FACTORYClient,
+    LIQUIDITYClient,
     utils,
     constants
 };

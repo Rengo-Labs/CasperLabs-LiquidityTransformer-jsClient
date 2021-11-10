@@ -1,6 +1,6 @@
 import { config } from "dotenv";
 config();
-import { FACTORYClient, utils, constants } from "../src";
+import { LIQUIDITYClient, utils, constants } from "../src";
 import { parseTokenMeta, sleep, getDeploy } from "./utils";
 
 import {
@@ -36,13 +36,13 @@ const KEYS = Keys.Ed25519.parseKeyFiles(
 );
 
 const test = async () => {
-	const factory = new FACTORYClient(
+	const liquidity = new LIQUIDITYClient(
 		NODE_ADDRESS!,
 		CHAIN_NAME!,
 		EVENT_STREAM_ADDRESS!
 	);
 
-	const listener = factory.onEvent(
+	const listener = liquidity.onEvent(
 		[
 			LIQUIDITYEvents.SetFeeTo,
 			LIQUIDITYEvents.SetFeeToSetter,
@@ -78,18 +78,18 @@ const test = async () => {
 	console.log(`... Contract Hash: ${contractHash}`);
 
 	// We don't need hash- prefix so i'm removing it
-	await factory.setContractHash(contractHash.slice(5));
+	await liquidity.setContractHash(contractHash.slice(5));
 
 	//feetosetter
-	const feetosetter = await factory.feeToSetter();
+	const feetosetter = await liquidity.feeToSetter();
 	console.log(`... Contract feetosetter: ${feetosetter.toString()}`);
 
 	//allpairs
-	const allpairs = await factory.allPairs();
+	const allpairs = await liquidity.allPairs();
 	console.log(`... Contract allpairs: ${allpairs}`);
 
 	//createpair
-	const createpairDeployHash = await factory.createPair(
+	const createpairDeployHash = await liquidity.createPair(
 		KEYS,
 		TOKEN0_CONTRACT!,
 		TOKEN1_CONTRACT!,
@@ -102,18 +102,18 @@ const test = async () => {
 	console.log("... Pair created successfully");
 
 	//allpairs
-	const allPairs = await factory.allPairs();
+	const allPairs = await liquidity.allPairs();
 	console.log(`... Contract allpairs: ${allPairs}`);
 	// //allpairslength
-	const allpairslength = await factory.allPairsLength();
+	const allpairslength = await liquidity.allPairsLength();
 	console.log(`... Contract allpairslength: ${allpairslength}`);
 
 	//pair
-	let pair = await factory.getPair(TOKEN0_CONTRACT!, TOKEN1_CONTRACT!);
+	let pair = await liquidity.getPair(TOKEN0_CONTRACT!, TOKEN1_CONTRACT!);
 	console.log(`... Pair: ${pair}`);
 
 	//setfeeto
-	const setfeetoDeployHash = await factory.setFeeTo(
+	const setfeetoDeployHash = await liquidity.setFeeTo(
 		KEYS,
 		KEYS.publicKey,
 		SET_FEE_TO_PAYMENT_AMOUNT!
@@ -124,11 +124,11 @@ const test = async () => {
 	console.log("... Setfeeto functionality successfull");
 
 	// feeto
-	const feeto = await factory.feeTo();
+	const feeto = await liquidity.feeTo();
 	console.log(`... Contract feeto: ${feeto.toString()}`);
 
 	//setfeetosetter
-	const setfeetosetterDeployHash = await factory.setFeeToSetter(
+	const setfeetosetterDeployHash = await liquidity.setFeeToSetter(
 		KEYS,
 		KEYS.publicKey,
 		SET_FEE_TO_SETTER_PAYMENT_AMOUNT!
@@ -142,16 +142,16 @@ const test = async () => {
 	console.log("... SetfeetoSetter functionality successfull");
 
 	//feetosetter
-	const feeTosSetter = await factory.feeToSetter();
+	const feeTosSetter = await liquidity.feeToSetter();
 	console.log(`... Contract feetosetter: ${feeTosSetter.toString()}`);
 
-	let register = await factory.registerWebHook(
+	let register = await liquidity.registerWebHook(
 		"http://localhost:5000/",
 		"http://localhost:5000/mockserver"
 	);
 	console.log(`... Register Endpoint: ${register}`);
 
-	let createPair = await factory.CreatePairApi(
+	let createPair = await liquidity.CreatePairApi(
 		"c9d0268ecea8c57ed456bf56e4fba4bf285a4588fd817832230b8fd86b71c30f",
 		"fbfeda8b97f056f526f20c2fc2b486d9bdbfb3e46b9a164527e57c0c86e68612"
 	);

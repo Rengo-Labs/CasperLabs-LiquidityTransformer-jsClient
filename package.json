@@ -1,5 +1,5 @@
 {
-  "name": "casper-factory",
+  "name": "casper-liquidity",
   "version": "1.0.0",
   "description": "initial Package",
   "main": "dist/index.js",

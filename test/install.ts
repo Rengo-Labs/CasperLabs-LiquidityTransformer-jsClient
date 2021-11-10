@@ -1,6 +1,6 @@
 import { config } from "dotenv";
 config();
-import { FACTORYClient, utils, constants } from "../src";
+import { LIQUIDITYClient, utils, constants } from "../src";
 import { parseTokenMeta, sleep, getDeploy } from "./utils";
 
 import {
@@ -26,13 +26,13 @@ const KEYS = Keys.Ed25519.parseKeyFiles(
 );
 
 const test = async () => {
-  const factory = new FACTORYClient(
+  const liquidity = new LIQUIDITYClient(
     NODE_ADDRESS!,
     CHAIN_NAME!,
     EVENT_STREAM_ADDRESS!
   );
 
-  const installDeployHash = await factory.install(
+  const installDeployHash = await liquidity.install(
     KEYS,
     CONTRACT_NAME!,
     KEYS.publicKey!,
