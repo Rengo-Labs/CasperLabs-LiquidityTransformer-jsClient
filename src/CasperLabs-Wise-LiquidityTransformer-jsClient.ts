@@ -778,6 +778,21 @@ class LIQUIDITYClient {
 		);
 		return result.value().toString();
 	}
+
+	public async requestRefund(
+		investorParam: CLPublicKey /*succesorPurse: uref*/
+	) {
+		//Dont know how to pass uref
+		const investor = Buffer.from(investorParam.toAccountHash()).toString("hex");
+
+		const result = await utils.contractDictionaryGetter(
+			this.nodeAddress,
+			investor,
+			"prepare_path"
+		);
+		const maybeValue = result.value().unwrap();
+		return maybeValue.value().toString();
+	}
 	// public async feeTo() {
 	// 	const result = await contractSimpleGetter(
 	// 		this.nodeAddress,
