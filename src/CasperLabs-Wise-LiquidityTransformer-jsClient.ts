@@ -17,7 +17,7 @@ import {
 	RuntimeArgs,
 } from "casper-js-sdk";
 // import { FACTORYEvents } from "./constants";
-// import * as utils from "./utils";
+import * as utils from "./utils";
 // import { RecipientType, IPendingDeploy } from "./types";
 // const axios = require("axios").default;
 
