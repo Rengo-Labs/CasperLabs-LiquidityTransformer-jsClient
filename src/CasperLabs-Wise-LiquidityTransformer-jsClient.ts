@@ -779,6 +779,7 @@ class LIQUIDITYClient {
 		return result.value().toString();
 	}
 
+	//Same issue as allowence
 	public async requestRefund(
 		investorParam: CLPublicKey /*succesorPurse: uref*/
 	) {
@@ -788,7 +789,7 @@ class LIQUIDITYClient {
 		const result = await utils.contractDictionaryGetter(
 			this.nodeAddress,
 			investor,
-			"prepare_path"
+			"request_refund"
 		);
 		const maybeValue = result.value().unwrap();
 		return maybeValue.value().toString();
