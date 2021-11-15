@@ -15,6 +15,9 @@ import {
 	EventStream,
 	Keys,
 	RuntimeArgs,
+	CLURef,
+	decodeBase16,
+	AccessRights,
 } from "casper-js-sdk";
 import { LIQUIDITYEvents } from "./constants";
 import * as utils from "./utils";
@@ -129,7 +132,7 @@ class LIQUIDITYClient {
 			token_address: CLValueBuilder.key(tokenContractHash),
 			token_amount: CLValueBuilder.u256(tokenAmount),
 			//ISSUE
-			investment_day: CLValueBuilder.u256(investmentDays),
+			investment_days: CLValueBuilder.u256(investmentDays),
 			referral_address: CLValueBuilder.key(referralAdd),
 		});
 
@@ -168,7 +171,7 @@ class LIQUIDITYClient {
 		);
 		const runtimeArgs = RuntimeArgs.fromMap({
 			//ISSUE
-			investment_dayd: CLValueBuilder.u256(investmentDays),
+			investment_days: CLValueBuilder.u256(investmentDays),
 			referral_address: CLValueBuilder.key(referralAdd),
 			sender_address: CLValueBuilder.key(senderAdd),
 			sender_value: CLValueBuilder.u256(senderValue),
@@ -502,13 +505,13 @@ class LIQUIDITYClient {
 
 	public async payoutInvestmentDayBatch(
 		keys: Keys.AsymmetricKey,
-		investmentDays: string,
+		investmentDay: string,
 		investorBatchFrom: string,
 		investorBatchTo: string,
 		paymentAmount: string
 	) {
 		const runtimeArgs = RuntimeArgs.fromMap({
-			investment_day: CLValueBuilder.u256(investmentDays),
+			investment_day: CLValueBuilder.u256(investmentDay),
 			investor_batch_from: CLValueBuilder.u256(investorBatchFrom),
 			investor_batch_to: CLValueBuilder.u256(investorBatchTo),
 		});
@@ -575,7 +578,7 @@ class LIQUIDITYClient {
 		const deployHash = await contractCall({
 			chainName: this.chainName,
 			contractHash: this.contractHash,
-			entryPoint: "current_wise_day",
+			entryPoint: "check_investment_days",
 			paymentAmount,
 			nodeAddress: this.nodeAddress,
 			keys: keys,
@@ -596,10 +599,15 @@ class LIQUIDITYClient {
 		teamAddressPurse: string,
 		paymentAmount: string
 	) {
+		const team_address_purse = new CLURef(
+			decodeBase16(teamAddressPurse),
+			AccessRights.READ_ADD_WRITE
+		);
 		const runtimeArgs = RuntimeArgs.fromMap({
 			amount: CLValueBuilder.u256(Amount),
 			//ISSUE
-			// team_address_purse: CLValueBuilder.uref(teamAddressPurse),
+
+			team_address_purse,
 		});
 
 		const deployHash = await contractCall({
@@ -781,7 +789,8 @@ class LIQUIDITYClient {
 
 	//Same issue as allowence
 	public async requestRefund(
-		investorParam: CLPublicKey /*succesorPurse: uref*/
+		investorParam: CLPublicKey
+		/*succesorPurse: CLURef*/
 	) {
 		//Dont know how to pass uref
 		const investor = Buffer.from(investorParam.toAccountHash()).toString("hex");

@@ -140,7 +140,7 @@ const test = async () => {
 	const addBalance = await liquidity.addBalance(
 		KEYS,
 		SENDER_ADDRESS!,
-		INVESTMENT_DAYS!,
+		INVESTMENT_DAY!,
 		INVESTMENT_BALANCE!,
 		RESERVE_WISE_PAYMENT_AMOUNT!
 	);
@@ -243,7 +243,7 @@ const test = async () => {
 
 	const payoutInvestmentDayBatch = await liquidity.payoutInvestmentDayBatch(
 		KEYS,
-		INVESTMENT_DAYS!,
+		INVESTMENT_DAY!,
 		INVESTOR_BATCH_FROM!,
 		INVESTOR_BATCH_TO!,
 		RESERVE_WISE_PAYMENT_AMOUNT!
