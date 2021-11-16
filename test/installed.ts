@@ -133,7 +133,6 @@ const test = async () => {
 		RESERVE_WISE_PAYMENT_AMOUNT!
 	);
 	console.log("... reserveWise deploy hash: ", reserveWise);
-	INVESTMENT_DAY;
 	await getDeploy(NODE_ADDRESS!, reserveWise);
 	console.log("... reserveWise createINVESTMENT_DAYd successfully");
 
