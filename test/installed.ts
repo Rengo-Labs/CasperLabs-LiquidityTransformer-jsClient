@@ -9,6 +9,9 @@ import {
 	CLPublicKey,
 	CLAccountHash,
 	CLPublicKeyType,
+	CLURef,
+	decodeBase16,
+	AccessRights,
 } from "casper-js-sdk";
 
 const { LIQUIDITYEvents } = constants;
@@ -49,6 +52,7 @@ const {
 	TEAM_ADDRESS_PURSE,
 	INVESTOR_ADDRESS,
 	TEAM_AMOUNT,
+	SUCCESOR_PURSE,
 } = process.env;
 
 const KEYS = Keys.Ed25519.parseKeyFiles(
@@ -286,6 +290,9 @@ const test = async () => {
 
 	/*=========================Getters=========================*/
 
+	const INVESTMENTDAY = CLValueBuilder.u256(INVESTMENT_DAY);
+	const TEAMAMOUNT = CLValueBuilder.u256(TEAM_AMOUNT);
+
 	const payoutInvestorAddress = await liquidity.payoutInvestorAddress(
 		KEYS.publicKey
 	);
@@ -295,8 +302,7 @@ const test = async () => {
 		KEYS.publicKey
 	);
 	console.log(`... Contract payoutReferralAddress: ${payoutReferralAddress}`);
-
-	const myInvestmentAmount = await liquidity.myInvestmentAmount(INVESTMENT_DAY);
+	const myInvestmentAmount = await liquidity.myInvestmentAmount(INVESTMENTDAY);
 	console.log(`... Contract allpairs: ${myInvestmentAmount}`);
 
 	const myInvestmentAmountAllDays = await liquidity.myInvestmentAmountAllDays();
@@ -305,7 +311,7 @@ const test = async () => {
 	const myTotalInvestmentAmount = await liquidity.myTotalInvestmentAmount();
 	console.log(`... Contract allpairs: ${myTotalInvestmentAmount}`);
 
-	const investorsOnDay = await liquidity.investorsOnDay(INVESTMENT_DAY);
+	const investorsOnDay = await liquidity.investorsOnDay(INVESTMENTDAY);
 	console.log(`... Contract allpairs: ${investorsOnDay}`);
 
 	const investorsOnAllDays = await liquidity.investorsOnAllDays();
@@ -320,21 +326,28 @@ const test = async () => {
 	const preparePath = await liquidity.preparePath(KEYS.publicKey);
 	console.log(`... Contract allpairs: ${preparePath}`);
 
-	const teamContribution = await liquidity.teamContribution(TEAM_AMOUNT);
+	const teamContribution = await liquidity.teamContribution(TEAMAMOUNT);
 	console.log(`... Contract allpairs: ${teamContribution}`);
 
 	const fundedDays = await liquidity.fundedDays();
 	console.log(`... Contract allpairs: ${fundedDays}`);
 
 	const calculateDailyRatio = await liquidity.calculateDailyRatio(
-		INVESTMENT_DAY
+		INVESTMENTDAY
 	);
 	console.log(`... Contract allpairs: ${calculateDailyRatio}`);
 
 	const currentWiseDay = await liquidity.currentWiseDay();
 	console.log(`... Contract allpairs: ${currentWiseDay}`);
 
-	const requestRefund = await liquidity.requestRefund(KEYS.publicKey);
+	const SUCCESORPURSE = new CLURef(
+		decodeBase16(SUCCESOR_PURSE),
+		AccessRights.READ_ADD_WRITE
+	);
+	const requestRefund = await liquidity.requestRefund(
+		KEYS.publicKey,
+		SUCCESORPURSE
+	);
 	console.log(`... Contract allpairs: ${requestRefund}`);
 
 	//createpair

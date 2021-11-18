@@ -18,10 +18,14 @@ import {
 	CLURef,
 	decodeBase16,
 	AccessRights,
+	CLU256,
 } from "casper-js-sdk";
 import { LIQUIDITYEvents } from "./constants";
 import * as utils from "./utils";
 import { RecipientType, IPendingDeploy } from "./types";
+import { concat } from "@ethersproject/bytes";
+import blake from "blakejs";
+
 // const axios = require("axios").default;
 
 class LIQUIDITYClient {
@@ -658,13 +662,20 @@ class LIQUIDITYClient {
 		return maybeValue.value().toString();
 	}
 
-	public async myInvestmentAmount(investment_day: string) {
+	public async myInvestmentAmount(investment_day: CLU256) {
 		//Cannot pass u256 in the argument
+		//Throws Error that you cannot pass CLU256 in string
+
 		// const investment_day = CLValueBuilder.u256(investmentDay);
+		const finalBytes = concat([
+			CLValueParsers.toBytes(investment_day).unwrap(),
+		]);
+		const blaked = blake.blake2b(finalBytes, undefined, 32);
+		const encodedBytes = Buffer.from(blaked).toString("hex");
 
 		const result = await utils.contractDictionaryGetter(
 			this.nodeAddress,
-			investment_day,
+			encodedBytes,
 			"my_investment_amount"
 		);
 		const maybeValue = result.value().unwrap();
@@ -689,13 +700,19 @@ class LIQUIDITYClient {
 		return result.value().toString();
 	}
 
-	public async investorsOnDay(investment_day: string) {
+	public async investorsOnDay(investment_day: CLU256) {
 		//Cannot pass u256 in the argument
+		//Throws Error that you cannot pass CLU256 in string
 		// const investment_day = CLValueBuilder.u256(investmentDay);
+		const finalBytes = concat([
+			CLValueParsers.toBytes(investment_day).unwrap(),
+		]);
+		const blaked = blake.blake2b(finalBytes, undefined, 32);
+		const encodedBytes = Buffer.from(blaked).toString("hex");
 
 		const result = await utils.contractDictionaryGetter(
 			this.nodeAddress,
-			investment_day,
+			encodedBytes,
 			"investors_on_day"
 		);
 		const maybeValue = result.value().unwrap();
@@ -743,13 +760,19 @@ class LIQUIDITYClient {
 		return maybeValue.value().toString();
 	}
 
-	public async teamContribution(team_amount: string) {
+	public async teamContribution(team_amount: CLU256) {
 		//Cannot pass u256 in the argument
+		//Throws Error that you cannot pass CLU256 in string
+
 		// const team_amount = CLValueBuilder.u256(teamAmount);
+
+		const finalBytes = concat([CLValueParsers.toBytes(team_amount).unwrap()]);
+		const blaked = blake.blake2b(finalBytes, undefined, 32);
+		const encodedBytes = Buffer.from(blaked).toString("hex");
 
 		const result = await utils.contractDictionaryGetter(
 			this.nodeAddress,
-			team_amount,
+			encodedBytes,
 			"team_contribution"
 		);
 		const maybeValue = result.value().unwrap();
@@ -765,13 +788,21 @@ class LIQUIDITYClient {
 		return result.value().toString();
 	}
 
-	public async calculateDailyRatio(investment_day: string) {
+	public async calculateDailyRatio(investment_day: CLU256) {
 		//Cannot pass u256 in the argument
+		//Throws Error that you cannot pass CLU256 in string
+
 		// const investment_day = CLValueBuilder.u256(investmentDay);
+
+		const finalBytes = concat([
+			CLValueParsers.toBytes(investment_day).unwrap(),
+		]);
+		const blaked = blake.blake2b(finalBytes, undefined, 32);
+		const encodedBytes = Buffer.from(blaked).toString("hex");
 
 		const result = await utils.contractDictionaryGetter(
 			this.nodeAddress,
-			investment_day,
+			encodedBytes,
 			"calculate_daily_ratio"
 		);
 		const maybeValue = result.value().unwrap();
@@ -789,15 +820,27 @@ class LIQUIDITYClient {
 
 	//Same issue as allowence
 	public async requestRefund(
-		investorParam: CLPublicKey
-		/*succesorPurse: CLURef*/
+		investorParam: CLPublicKey,
+		succesor_purse: CLURef
 	) {
-		//Dont know how to pass uref
-		const investor = Buffer.from(investorParam.toAccountHash()).toString("hex");
+		const investor = new CLKey(
+			new CLAccountHash(investorParam.toAccountHash())
+		);
+		const finalBytes = concat([
+			CLValueParsers.toBytes(investor).unwrap(),
+			CLValueParsers.toBytes(succesor_purse).unwrap(),
+		]);
+		const blaked = blake.blake2b(finalBytes, undefined, 32);
+		const encodedBytes = Buffer.from(blaked).toString("hex");
+
+		// const succesor_purse = new CLURef(
+		// 	decodeBase16(succesorPurse),
+		// 	AccessRights.READ_ADD_WRITE
+		// );
 
 		const result = await utils.contractDictionaryGetter(
 			this.nodeAddress,
-			investor,
+			encodedBytes,
 			"request_refund"
 		);
 		const maybeValue = result.value().unwrap();
