@@ -1,6 +1,10 @@
 import { config } from "dotenv";
 config();
-import { LIQUIDITYClient, utils, constants } from "../../../JsClients/LIQUIDITYTRANSFORMER/src";
+import {
+	LIQUIDITYClient,
+	utils,
+	constants,
+} from "../../../JsClients/LIQUIDITYTRANSFORMER/src";
 import { parseTokenMeta, sleep, getDeploy } from "./utils";
 
 import {
@@ -12,6 +16,7 @@ import {
 	CLURef,
 	decodeBase16,
 	AccessRights,
+	RuntimeArgs,
 } from "casper-js-sdk";
 
 const { LIQUIDITYEvents } = constants;
@@ -29,9 +34,11 @@ const {
 	CREATE_PAIR_PAYMENT_AMOUNT,
 	LIQUIDITYTRANSFORMER_CONTRACT_NAME,
 	TOKEN0_CONTRACT,
-	TOKEN1_CONTRACT,
-	// PAIR_CONTRACT,
+	TOKEN_CONTRACT,
 	RESERVE_WISE_PAYMENT_AMOUNT,
+	RESERVE_WISE_WITH_TOKEN_PAYMENT_AMOUNT,
+	FORWARD_LIQUIDITY_PAYMENT_AMOUNT,
+	REQUEST_REFUND_PAYMENT_AMOUNT,
 	INVESTMENT_DAY,
 	INVESTMENT_DAYS,
 	INVESTMENT_BALANCE,
@@ -59,7 +66,9 @@ const {
 	CALLER_PURSE,
 	WISETOKEN_CONTRACT_HASH,
 	PAIR_CONTRACT_HASH,
-	SYNTHETIC_CSPR_PACKAGE
+	SYNTHETIC_CSPR_PACKAGE,
+	LIQUIDITYTRANSFORMER_SESSION_WASM_PATH,
+	LIQUIDITYTRANSFORMER_PACKAGE_HASH
 } = process.env;
 
 const KEYS = Keys.Ed25519.parseKeyFiles(
@@ -74,69 +83,73 @@ const liquidity = new LIQUIDITYClient(
 );
 
 const test = async () => {
-
 	// We don't need hash- prefix so i'm removing it
 	await liquidity.setContractHash(LIQUIDITYTRANSFORMER_CONTRACT_HASH!);
-
 	console.log("Liquidity Transformer contract Hash: ", LIQUIDITYTRANSFORMER_CONTRACT_HASH!);
 
-	//first mint tokens in wise contract
-	//reserve_wise
-	const _reserve_Wise = await liquidity.reserve_Wise(
+	/* Reserve Wise */
+	const reserveWise = await liquidity.reserveWise(
 		KEYS,
+		LIQUIDITYTRANSFORMER_PACKAGE_HASH!,
+		LIQUIDITYTRANSFORMER_SESSION_WASM_PATH!,
+		RESERVE_WISE_PAYMENT_AMOUNT!,
 		INVESTMENT_MODE!,
-		MSG_VALUE!,
-		CALLER_PURSE!,
-		RESERVE_WISE_PAYMENT_AMOUNT!
+		MSG_VALUE!
 	);
-	console.log("... _reserve_Wise deploy hash: ", _reserve_Wise);
+	console.log("... reserve wise deploy hash: ", reserveWise);
+	await getDeploy(NODE_ADDRESS!, reserveWise);
+	console.log("... reserve wise called successfully");
 
-	await getDeploy(NODE_ADDRESS!, _reserve_Wise);
-	console.log("... _reserve_Wise called successfully");
+	/* Reserve Wise With Token */
+	// -- Prerequisite Calls --
+	// add_liquidity	wcspr <=> erc20
+	// approve			erc20 => liquidity_transformer
+	const reserveWiseWithToken = await liquidity.reserveWiseWithToken(
+		KEYS,
+		LIQUIDITYTRANSFORMER_PACKAGE_HASH!,
+		LIQUIDITYTRANSFORMER_SESSION_WASM_PATH!,
+		RESERVE_WISE_WITH_TOKEN_PAYMENT_AMOUNT!,
+		TOKEN_CONTRACT!,
+		AMOUNT!,
+		INVESTMENT_MODE!,
+	);
+	console.log("... reserveWiseWithToken deploy hash: ", reserveWiseWithToken);
+	await getDeploy(NODE_ADDRESS!, reserveWiseWithToken);
+	console.log("... reserveWiseWithToken called successfully");
 
-	//call mint and approve in erc20 first
-	//reserve_wise_with_token
-	// const reserveWiseWithToken = await liquidity.reserveWiseWithToken(
-	// 	KEYS,
-	// 	TOKEN1_CONTRACT!,
-	// 	AMOUNT!,
-	// 	INVESTMENT_MODE!,
-	// 	CALLER_PURSE!,
-	// 	RESERVE_WISE_PAYMENT_AMOUNT!
-	// );
-	// console.log("... reserveWiseWithToken deploy hash: ", reserveWiseWithToken);
-	// await getDeploy(NODE_ADDRESS!, reserveWiseWithToken);
-	// console.log("... reserveWiseWithToken called successfully");
+	/* Forward Liquidity */
+	// -- Prerequisite Calls --
+	// set_wise						scspr => wise
+	// set_white_list				factory => scspr
+	// set_white_list				factory => uniswap_router
+	// set_white_list				factory => wise
+	// define_token					scspr => wise
+	// define_helper				scspr => transfer_helper
+	// create_pair					wise
+	// create_pair					scspr
+	// set_liquidity_transfomer		wise
+	// reserve_wise					liquidity_transfomer
+	const forwardLiquidity = await liquidity.forwardLiquidity(
+		KEYS,
+		FORWARD_LIQUIDITY_PAYMENT_AMOUNT!,
+		PAIR_CONTRACT_HASH!
+	);
+	console.log("... forwardLiquidity deploy hash: ", forwardLiquidity);
+	await getDeploy(NODE_ADDRESS!, forwardLiquidity);
+	console.log("... forwardLiquidity called successfully");
 
-	// //requestRefund
-	// const requestRefund = await liquidity.requestRefund(
-	// 	KEYS,
-	// 	CALLER_PURSE!,
-	// 	RESERVE_WISE_PAYMENT_AMOUNT!
-	// );
-	// console.log(`... requestRefund deploy hash: ${requestRefund}`);
-
-	// await getDeploy(NODE_ADDRESS!, requestRefund);
-	// console.log("... requestRefund called successfully");
-
-	// call set_liquidity_transfomer
-	// call set_wise
-	// call erc20 mint against scspr_package
-	// call approve of scspr against router_package
-	// call erc20 mint against pair_package
-	// call erc20 2 mint against scspr_package
-	// call erc20 2 mint against pair_package
-	// call pair initialize function
-	// call pair sync method
-	//forwardliquidity
-	// const forwardLiquidity = await liquidity.forwardLiquidity(
-	// 	KEYS,
-	// 	CALLER_PURSE!,
-	// 	RESERVE_WISE_PAYMENT_AMOUNT!
-	// );
-	// console.log("... forwardLiquidity deploy hash: ", forwardLiquidity);
-	// await getDeploy(NODE_ADDRESS!, forwardLiquidity);
-	// console.log("... forwardLiquidity called successfully");
+	/* Request Refund */
+	// -- Prerequisite Calls --
+	// reserve_wise		liquidity_transfomer
+	const requestRefund = await liquidity.requestRefund(
+		KEYS,
+		LIQUIDITYTRANSFORMER_PACKAGE_HASH!,
+		LIQUIDITYTRANSFORMER_SESSION_WASM_PATH!,
+		REQUEST_REFUND_PAYMENT_AMOUNT!
+	);
+	console.log(`... requestRefund deploy hash: ${requestRefund}`);
+	await getDeploy(NODE_ADDRESS!, requestRefund);
+	console.log("... requestRefund called successfully");
 
 	// // --- set_settings ---
 	// const _setSettings = await liquidity.setSettings(
@@ -147,10 +160,8 @@ const test = async () => {
 	// 	RESERVE_WISE_PAYMENT_AMOUNT!
 	// );
 	// console.log("... _setSettings deploy hash: ", _setSettings);
-
 	// await getDeploy(NODE_ADDRESS!, _setSettings);
 	// console.log("... _setSettings called successfully");
-
 	// // --- get_my_tokens ---
 	// const getMyTokens = await liquidity.getMyTokens(
 	// 	KEYS,
@@ -159,22 +170,17 @@ const test = async () => {
 	// console.log("... getMyTokens deploy hash: ", getMyTokens);
 	// await getDeploy(NODE_ADDRESS!, getMyTokens);
 	// console.log("... getMyTokens created successfully");
-
 	// /*=========================Getters=========================*/
-
 	// const INVESTMENTDAY = CLValueBuilder.u256(INVESTMENT_DAY);
 	// const TEAMAMOUNT = CLValueBuilder.u256(TEAM_AMOUNT);
-
 	// const payoutInvestorAddress = await liquidity.payoutInvestorAddress(
 	// 	KEYS.publicKey
 	// );
 	// console.log(`... Contract payoutInvestorAddress: ${payoutInvestorAddress}`);
-
 	// const preparePath = await liquidity.preparePath(KEYS.publicKey);
 	// console.log(`... Contract allpairs: ${preparePath}`);
-
 	// const currentWiseDay = await liquidity.currentWiseDay();
 	// console.log(`... currentWiseDay : ${currentWiseDay}`);
 };
 
-test();
+// test();

@@ -3,7 +3,7 @@ config();
 import { WISETokenClient, utils, constants } from "../../../JsClients/WISETOKEN/src";
 import { parseTokenMeta, sleep, getDeploy } from "./utils";
 
-import { Keys } from "casper-js-sdk";
+import { CLValueBuilder, Keys } from "casper-js-sdk";
 
 const {
 	NODE_ADDRESS,
@@ -14,9 +14,9 @@ const {
 	WISETOKEN_INSTALL_PAYMENT_AMOUNT,
 	WISETOKEN_CONTRACT_NAME,
 	WCSPR_ADDRESS,
-	SYNTHETIC_CSPR_ADDRESS,
+	SYNTHETIC_CSPR_PACKAGE,
 	PAIR_ADDRESS,
-	ROUTER_ADDRESS,
+	ROUTER_PACKAGE_HASH,
 	FACTORY_ADDRESS,
 	LIQUIDITY_GUARD_ADDRESS,
 	LAUNCH_TIME
@@ -28,21 +28,24 @@ const KEYS = Keys.Ed25519.parseKeyFiles(
 );
 
 const test = async () => {
+
 	const wise = new WISETokenClient(
 		NODE_ADDRESS!,
 		CHAIN_NAME!,
 		EVENT_STREAM_ADDRESS!
 	);
-	
+
+	let test_launch_time = Date.now() - 172800000; // 172800000 == 2 days
 	const installDeployHash = await wise.install(
 		KEYS,
 		WCSPR_ADDRESS!,
-		SYNTHETIC_CSPR_ADDRESS!,
+		SYNTHETIC_CSPR_PACKAGE!,
 		PAIR_ADDRESS!,
-		ROUTER_ADDRESS!,
+		ROUTER_PACKAGE_HASH!,
 		FACTORY_ADDRESS!,
 		LIQUIDITY_GUARD_ADDRESS!,
-		LAUNCH_TIME!,
+		// LAUNCH_TIME!,
+		(test_launch_time).toString(),
 		WISETOKEN_CONTRACT_NAME!,
 		WISETOKEN_INSTALL_PAYMENT_AMOUNT!,
 		WISETOKEN_WASM_PATH!
@@ -70,8 +73,8 @@ const test = async () => {
 		accountInfo,
 		`${WISETOKEN_CONTRACT_NAME!}_package_hash`
 	);
-	
+
 	console.log(`... Package Hash: ${packageHash}`);
 };
 
-//test();
+test();

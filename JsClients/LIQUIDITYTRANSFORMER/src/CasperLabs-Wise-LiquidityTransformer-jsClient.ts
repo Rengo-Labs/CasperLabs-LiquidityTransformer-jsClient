@@ -26,8 +26,6 @@ import { RecipientType, IPendingDeploy } from "./types";
 import { concat } from "@ethersproject/bytes";
 import blake from "blakejs";
 
-// const axios = require("axios").default;
-
 class LIQUIDITYClient {
 	private contractName: string = "Liquidity_transformer";
 	private contractHash: string = "Liquidity_transformer";
@@ -123,7 +121,6 @@ class LIQUIDITYClient {
 			stateRootHash,
 			hash
 		);
-
 		const { contractPackageHash, namedKeys } = contractData.Contract!;
 		this.contractHash = hash;
 		this.contractPackageHash = contractPackageHash.replace(
@@ -187,6 +184,7 @@ class LIQUIDITYClient {
 			throw Error("Invalid Deploy");
 		}
 	}
+
 	public async renounceKeeper(keys: Keys.AsymmetricKey, paymentAmount: string) {
 		const runtimeArgs = RuntimeArgs.fromMap({});
 
@@ -206,33 +204,32 @@ class LIQUIDITYClient {
 			throw Error("Invalid Deploy");
 		}
 	}
-	public async reserve_Wise(
+
+	public async reserveWise(
 		keys: Keys.AsymmetricKey,
+		packageHash: string,
+		sessionWasmPath: string,
+		paymentAmount: string,
 		investmentMode: string,
 		msgValue: string,
-		callerPurse: string,
-		paymentAmount: string
 	) {
-		const caller_purse = new CLURef(
-			decodeBase16(callerPurse),
-			AccessRights.READ_ADD_WRITE
+		const ltPackageHash = new CLByteArray(
+			Uint8Array.from(Buffer.from(packageHash, "hex"))
 		);
 		const runtimeArgs = RuntimeArgs.fromMap({
+			package_hash: CLValueBuilder.key(ltPackageHash),
+			entrypoint: CLValueBuilder.string("reserve_wise"),
 			investment_mode: CLValueBuilder.u8(investmentMode),
-			msg_value: CLValueBuilder.u256(msgValue),
-			caller_purse: caller_purse,
+			amount: CLValueBuilder.u512(msgValue),
 		});
-
-		const deployHash = await contractCall({
+		const deployHash = await installWasmFile({
 			chainName: this.chainName,
-			contractHash: this.contractHash,
-			entryPoint: "reserve_wise",
 			paymentAmount,
 			nodeAddress: this.nodeAddress,
-			keys: keys,
+			keys,
+			pathToContract: sessionWasmPath,
 			runtimeArgs,
 		});
-
 		if (deployHash !== null) {
 			return deployHash;
 		} else {
@@ -242,38 +239,34 @@ class LIQUIDITYClient {
 
 	public async reserveWiseWithToken(
 		keys: Keys.AsymmetricKey,
+		packageHash: string,
+		sessionWasmPath: string,
+		paymentAmount: string,
 		tokenAddress: string,
 		tokenAmount: string,
-		investmentMode: string,
-		callerPurse: string,
-		paymentAmount: string
+		investmentMode: string
 	) {
-		const tokenContractHash = new CLByteArray(
+		const ltPackageHash = new CLByteArray(
+			Uint8Array.from(Buffer.from(packageHash, "hex"))
+		);
+		const tokenAddr = new CLByteArray(
 			Uint8Array.from(Buffer.from(tokenAddress, "hex"))
 		);
-
-		const caller_purse = new CLURef(
-			decodeBase16(callerPurse),
-			AccessRights.READ_ADD_WRITE
-		);
-
 		const runtimeArgs = RuntimeArgs.fromMap({
-			token_address: CLValueBuilder.key(tokenContractHash),
+			package_hash: CLValueBuilder.key(ltPackageHash),
+			entrypoint: CLValueBuilder.string("reserve_wise_with_token"),
+			token_address: CLValueBuilder.key(tokenAddr),
 			token_amount: CLValueBuilder.u256(tokenAmount),
 			investment_mode: CLValueBuilder.u8(investmentMode),
-			caller_purse: caller_purse,
 		});
-
-		const deployHash = await contractCall({
+		const deployHash = await installWasmFile({
 			chainName: this.chainName,
-			contractHash: this.contractHash,
-			entryPoint: "reserve_wise_with_token",
 			paymentAmount,
 			nodeAddress: this.nodeAddress,
-			keys: keys,
+			keys,
+			pathToContract: sessionWasmPath,
 			runtimeArgs,
 		});
-
 		if (deployHash !== null) {
 			return deployHash;
 		} else {
@@ -283,17 +276,15 @@ class LIQUIDITYClient {
 
 	public async forwardLiquidity(
 		keys: Keys.AsymmetricKey,
-		succesorPurse: string,
-		paymentAmount: string
+		paymentAmount: string,
+		pair: string
 	) {
-		const succesor_purse = new CLURef(
-			decodeBase16(succesorPurse),
-			AccessRights.READ_ADD_WRITE
+		const pairHash = new CLByteArray(
+			Uint8Array.from(Buffer.from(pair, "hex"))
 		);
 		const runtimeArgs = RuntimeArgs.fromMap({
-			purse: succesor_purse,
+			pair: pairHash,
 		});
-
 		const deployHash = await contractCall({
 			chainName: this.chainName,
 			contractHash: this.contractHash,
@@ -303,7 +294,6 @@ class LIQUIDITYClient {
 			keys: keys,
 			runtimeArgs,
 		});
-
 		if (deployHash !== null) {
 			return deployHash;
 		} else {
@@ -311,9 +301,10 @@ class LIQUIDITYClient {
 		}
 	}
 
+	/* Prerequisite Calls */
+	// forward_liquidity		liquidity_transfomer => pair
 	public async getMyTokens(keys: Keys.AsymmetricKey, paymentAmount: string) {
 		const runtimeArgs = RuntimeArgs.fromMap({});
-
 		const deployHash = await contractCall({
 			chainName: this.chainName,
 			contractHash: this.contractHash,
@@ -323,7 +314,6 @@ class LIQUIDITYClient {
 			keys: keys,
 			runtimeArgs,
 		});
-
 		if (deployHash !== null) {
 			return deployHash;
 		} else {
@@ -331,11 +321,40 @@ class LIQUIDITYClient {
 		}
 	}
 
+	public async requestRefund(
+		keys: Keys.AsymmetricKey,
+		packageHash: string,
+		sessionWasmPath: string,
+		paymentAmount: string
+	) {
+		const ltPackageHash = new CLByteArray(
+			Uint8Array.from(Buffer.from(packageHash, "hex"))
+		);
+		const runtimeArgs = RuntimeArgs.fromMap({
+			package_hash: CLValueBuilder.key(ltPackageHash),
+			entrypoint: CLValueBuilder.string("request_refund"),
+		});
+		const deployHash = await installWasmFile({
+			chainName: this.chainName,
+			paymentAmount,
+			nodeAddress: this.nodeAddress,
+			keys,
+			pathToContract: sessionWasmPath,
+			runtimeArgs,
+		});
+		if (deployHash !== null) {
+			return deployHash;
+		} else {
+			throw Error("Invalid Deploy");
+		}
+	}
+
+	/* Prerequisite Calls */
+	// forward_liquidity		liquidity_transfomer => pair
 	public async payoutInvestorAddress(investorAddress: CLPublicKey) {
 		const investor_address = Buffer.from(
 			investorAddress.toAccountHash()
 		).toString("hex");
-
 		const result = await utils.contractDictionaryGetter(
 			this.nodeAddress,
 			investor_address,
@@ -349,7 +368,6 @@ class LIQUIDITYClient {
 		const token_address = Buffer.from(tokenAddress.toAccountHash()).toString(
 			"hex"
 		);
-
 		const result = await utils.contractDictionaryGetter(
 			this.nodeAddress,
 			token_address,
@@ -366,35 +384,6 @@ class LIQUIDITYClient {
 			"current_wise_day"
 		);
 		return result.value().toString();
-	}
-
-	public async requestRefund(
-		keys: Keys.AsymmetricKey,
-		succesorPurse: string,
-		paymentAmount: string
-	) {
-		const succesor_purse = new CLURef(
-			decodeBase16(succesorPurse),
-			AccessRights.READ_ADD_WRITE
-		);
-		const runtimeArgs = RuntimeArgs.fromMap({
-			caller_purse: succesor_purse,
-		});
-		const deployHash = await contractCall({
-			chainName: this.chainName,
-			contractHash: this.contractHash,
-			entryPoint: "request_refund_jsclient",
-			paymentAmount,
-			nodeAddress: this.nodeAddress,
-			keys: keys,
-			runtimeArgs,
-		});
-
-		if (deployHash !== null) {
-			return deployHash;
-		} else {
-			throw Error("Invalid Deploy");
-		}
 	}
 }
 
