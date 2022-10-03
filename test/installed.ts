@@ -28,6 +28,10 @@ const {
 	MASTER_KEY_PAIR_PATH,
 	CONTRACT_HASH,
 	PACKAGE_HASH,
+	SESSION_WASM_PATH,
+	RESERVE_WISE_PAYMENT_AMOUNT,
+	INVESTMENT_MODE,
+	MSG_VALUE,
 	RECEIVER_ACCOUNT_ONE,
 	INSTALL_PAYMENT_AMOUNT,
 	SET_FEE_TO_PAYMENT_AMOUNT,
@@ -36,7 +40,6 @@ const {
 	LIQUIDITYTRANSFORMER_CONTRACT_NAME,
 	TOKEN0_CONTRACT,
 	TOKEN_CONTRACT,
-	RESERVE_WISE_PAYMENT_AMOUNT,
 	RESERVE_WISE_WITH_TOKEN_PAYMENT_AMOUNT,
 	FORWARD_LIQUIDITY_PAYMENT_AMOUNT,
 	REQUEST_REFUND_PAYMENT_AMOUNT,
@@ -61,13 +64,10 @@ const {
 	INVESTOR_ADDRESS,
 	TEAM_AMOUNT,
 	SUCCESOR_PURSE,
-	INVESTMENT_MODE,
-	MSG_VALUE,
 	CALLER_PURSE,
 	WISETOKEN_CONTRACT_HASH,
 	PAIR_CONTRACT_HASH,
 	SYNTHETIC_CSPR_PACKAGE,
-	SESSION_WASM_PATH
 } = process.env;
 
 const KEYS = Keys.Ed25519.parseKeyFiles(
@@ -82,73 +82,73 @@ const liquidity = new LIQUIDITYClient(
 );
 
 const test = async () => {
-	// We don't need hash- prefix so i'm removing it
-	await liquidity.setContractHash(CONTRACT_HASH!);
-	console.log("Liquidity Transformer contract Hash: ", CONTRACT_HASH!);
+	// // We don't need hash- prefix so i'm removing it
+	// await liquidity.setContractHash(CONTRACT_HASH!);
+	// console.log("Liquidity Transformer contract Hash: ", CONTRACT_HASH!);
 
-	/* Reserve Wise */
-	const reserveWise = await liquidity.reserveWise(
-		KEYS,
-		PACKAGE_HASH!,
-		SESSION_WASM_PATH!,
-		RESERVE_WISE_PAYMENT_AMOUNT!,
-		INVESTMENT_MODE!,
-		MSG_VALUE!
-	);
-	console.log("... reserve wise deploy hash: ", reserveWise);
-	await getDeploy(NODE_ADDRESS!, reserveWise);
-	console.log("... reserve wise called successfully");
+	// /* Reserve Wise */
+	// const reserveWise = await liquidity.reserveWise(
+	// 	KEYS,
+	// 	PACKAGE_HASH!,
+	// 	SESSION_WASM_PATH!,
+	// 	RESERVE_WISE_PAYMENT_AMOUNT!,
+	// 	INVESTMENT_MODE!,
+	// 	MSG_VALUE!
+	// );
+	// console.log("... reserve wise deploy hash: ", reserveWise);
+	// await getDeploy(NODE_ADDRESS!, reserveWise);
+	// console.log("... reserve wise called successfully");
 
-	/* Reserve Wise With Token */
-	// -- Prerequisite Calls --
-	// add_liquidity	wcspr <=> erc20
-	// approve			erc20 => liquidity_transformer
-	const reserveWiseWithToken = await liquidity.reserveWiseWithToken(
-		KEYS,
-		PACKAGE_HASH!,
-		SESSION_WASM_PATH!,
-		RESERVE_WISE_WITH_TOKEN_PAYMENT_AMOUNT!,
-		TOKEN_CONTRACT!,
-		AMOUNT!,
-		INVESTMENT_MODE!,
-	);
-	console.log("... reserveWiseWithToken deploy hash: ", reserveWiseWithToken);
-	await getDeploy(NODE_ADDRESS!, reserveWiseWithToken);
-	console.log("... reserveWiseWithToken called successfully");
+	// /* Reserve Wise With Token */
+	// // -- Prerequisite Calls --
+	// // add_liquidity	wcspr <=> erc20
+	// // approve			erc20 => liquidity_transformer
+	// const reserveWiseWithToken = await liquidity.reserveWiseWithToken(
+	// 	KEYS,
+	// 	PACKAGE_HASH!,
+	// 	SESSION_WASM_PATH!,
+	// 	RESERVE_WISE_WITH_TOKEN_PAYMENT_AMOUNT!,
+	// 	TOKEN_CONTRACT!,
+	// 	AMOUNT!,
+	// 	INVESTMENT_MODE!,
+	// );
+	// console.log("... reserveWiseWithToken deploy hash: ", reserveWiseWithToken);
+	// await getDeploy(NODE_ADDRESS!, reserveWiseWithToken);
+	// console.log("... reserveWiseWithToken called successfully");
 
-	/* Forward Liquidity */
-	// -- Prerequisite Calls --
-	// set_wise						scspr => wise
-	// set_white_list				factory => scspr
-	// set_white_list				factory => uniswap_router
-	// set_white_list				factory => wise
-	// define_token					scspr => wise
-	// define_helper				scspr => transfer_helper
-	// create_pair					wise
-	// create_pair					scspr
-	// set_liquidity_transfomer		wise
-	// reserve_wise					liquidity_transfomer
-	const forwardLiquidity = await liquidity.forwardLiquidity(
-		KEYS,
-		FORWARD_LIQUIDITY_PAYMENT_AMOUNT!,
-		PAIR_CONTRACT_HASH!
-	);
-	console.log("... forwardLiquidity deploy hash: ", forwardLiquidity);
-	await getDeploy(NODE_ADDRESS!, forwardLiquidity);
-	console.log("... forwardLiquidity called successfully");
+	// /* Forward Liquidity */
+	// // -- Prerequisite Calls --
+	// // set_wise						scspr => wise
+	// // set_white_list				factory => scspr
+	// // set_white_list				factory => uniswap_router
+	// // set_white_list				factory => wise
+	// // define_token					scspr => wise
+	// // define_helper				scspr => transfer_helper
+	// // create_pair					wise
+	// // create_pair					scspr
+	// // set_liquidity_transfomer		wise
+	// // reserve_wise					liquidity_transfomer
+	// const forwardLiquidity = await liquidity.forwardLiquidity(
+	// 	KEYS,
+	// 	FORWARD_LIQUIDITY_PAYMENT_AMOUNT!,
+	// 	PAIR_CONTRACT_HASH!
+	// );
+	// console.log("... forwardLiquidity deploy hash: ", forwardLiquidity);
+	// await getDeploy(NODE_ADDRESS!, forwardLiquidity);
+	// console.log("... forwardLiquidity called successfully");
 
-	/* Request Refund */
-	// -- Prerequisite Calls --
-	// reserve_wise		liquidity_transfomer
-	const requestRefund = await liquidity.requestRefund(
-		KEYS,
-		PACKAGE_HASH!,
-		SESSION_WASM_PATH!,
-		REQUEST_REFUND_PAYMENT_AMOUNT!
-	);
-	console.log(`... requestRefund deploy hash: ${requestRefund}`);
-	await getDeploy(NODE_ADDRESS!, requestRefund);
-	console.log("... requestRefund called successfully");
+	// /* Request Refund */
+	// // -- Prerequisite Calls --
+	// // reserve_wise		liquidity_transfomer
+	// const requestRefund = await liquidity.requestRefund(
+	// 	KEYS,
+	// 	PACKAGE_HASH!,
+	// 	SESSION_WASM_PATH!,
+	// 	REQUEST_REFUND_PAYMENT_AMOUNT!
+	// );
+	// console.log(`... requestRefund deploy hash: ${requestRefund}`);
+	// await getDeploy(NODE_ADDRESS!, requestRefund);
+	// console.log("... requestRefund called successfully");
 
 	// // --- set_settings ---
 	// const _setSettings = await liquidity.setSettings(
@@ -182,4 +182,4 @@ const test = async () => {
 	// console.log(`... currentWiseDay : ${currentWiseDay}`);
 };
 
-// test();
+test();
