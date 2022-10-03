@@ -4,7 +4,7 @@ import {
 	LIQUIDITYClient,
 	utils,
 	constants,
-} from "../../../JsClients/LIQUIDITYTRANSFORMER/src";
+} from "../src";
 import { parseTokenMeta, sleep, getDeploy } from "./utils";
 
 import {
@@ -25,8 +25,9 @@ const {
 	NODE_ADDRESS,
 	EVENT_STREAM_ADDRESS,
 	CHAIN_NAME,
-	LIQUIDITYTRANSFORMER_WASM_PATH,
-	LIQUIDITYTRANSFORMER_MASTER_KEY_PAIR_PATH,
+	MASTER_KEY_PAIR_PATH,
+	CONTRACT_HASH,
+	PACKAGE_HASH,
 	RECEIVER_ACCOUNT_ONE,
 	INSTALL_PAYMENT_AMOUNT,
 	SET_FEE_TO_PAYMENT_AMOUNT,
@@ -60,20 +61,18 @@ const {
 	INVESTOR_ADDRESS,
 	TEAM_AMOUNT,
 	SUCCESOR_PURSE,
-	LIQUIDITYTRANSFORMER_CONTRACT_HASH,
 	INVESTMENT_MODE,
 	MSG_VALUE,
 	CALLER_PURSE,
 	WISETOKEN_CONTRACT_HASH,
 	PAIR_CONTRACT_HASH,
 	SYNTHETIC_CSPR_PACKAGE,
-	LIQUIDITYTRANSFORMER_SESSION_WASM_PATH,
-	LIQUIDITYTRANSFORMER_PACKAGE_HASH
+	SESSION_WASM_PATH
 } = process.env;
 
 const KEYS = Keys.Ed25519.parseKeyFiles(
-	`${LIQUIDITYTRANSFORMER_MASTER_KEY_PAIR_PATH}/public_key.pem`,
-	`${LIQUIDITYTRANSFORMER_MASTER_KEY_PAIR_PATH}/secret_key.pem`
+	`${MASTER_KEY_PAIR_PATH}/public_key.pem`,
+	`${MASTER_KEY_PAIR_PATH}/secret_key.pem`
 );
 
 const liquidity = new LIQUIDITYClient(
@@ -84,14 +83,14 @@ const liquidity = new LIQUIDITYClient(
 
 const test = async () => {
 	// We don't need hash- prefix so i'm removing it
-	await liquidity.setContractHash(LIQUIDITYTRANSFORMER_CONTRACT_HASH!);
-	console.log("Liquidity Transformer contract Hash: ", LIQUIDITYTRANSFORMER_CONTRACT_HASH!);
+	await liquidity.setContractHash(CONTRACT_HASH!);
+	console.log("Liquidity Transformer contract Hash: ", CONTRACT_HASH!);
 
 	/* Reserve Wise */
 	const reserveWise = await liquidity.reserveWise(
 		KEYS,
-		LIQUIDITYTRANSFORMER_PACKAGE_HASH!,
-		LIQUIDITYTRANSFORMER_SESSION_WASM_PATH!,
+		PACKAGE_HASH!,
+		SESSION_WASM_PATH!,
 		RESERVE_WISE_PAYMENT_AMOUNT!,
 		INVESTMENT_MODE!,
 		MSG_VALUE!
@@ -106,8 +105,8 @@ const test = async () => {
 	// approve			erc20 => liquidity_transformer
 	const reserveWiseWithToken = await liquidity.reserveWiseWithToken(
 		KEYS,
-		LIQUIDITYTRANSFORMER_PACKAGE_HASH!,
-		LIQUIDITYTRANSFORMER_SESSION_WASM_PATH!,
+		PACKAGE_HASH!,
+		SESSION_WASM_PATH!,
 		RESERVE_WISE_WITH_TOKEN_PAYMENT_AMOUNT!,
 		TOKEN_CONTRACT!,
 		AMOUNT!,
@@ -143,8 +142,8 @@ const test = async () => {
 	// reserve_wise		liquidity_transfomer
 	const requestRefund = await liquidity.requestRefund(
 		KEYS,
-		LIQUIDITYTRANSFORMER_PACKAGE_HASH!,
-		LIQUIDITYTRANSFORMER_SESSION_WASM_PATH!,
+		PACKAGE_HASH!,
+		SESSION_WASM_PATH!,
 		REQUEST_REFUND_PAYMENT_AMOUNT!
 	);
 	console.log(`... requestRefund deploy hash: ${requestRefund}`);

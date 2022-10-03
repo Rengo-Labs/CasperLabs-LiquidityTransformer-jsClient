@@ -4,7 +4,7 @@ import {
 	LIQUIDITYClient,
 	utils,
 	constants,
-} from "../../../JsClients/LIQUIDITYTRANSFORMER/src";
+} from "../src";
 import { parseTokenMeta, sleep, getDeploy } from "./utils";
 
 import { Keys } from "casper-js-sdk";
@@ -13,21 +13,21 @@ const {
 	NODE_ADDRESS,
 	EVENT_STREAM_ADDRESS,
 	CHAIN_NAME,
-	LIQUIDITYTRANSFORMER_WASM_PATH,
-	LIQUIDITYTRANSFORMER_MASTER_KEY_PAIR_PATH,
-	LIQUIDITYTRANSFORMER_INSTALL_PAYMENT_AMOUNT,
-	LIQUIDITYTRANSFORMER_CONTRACT_NAME,
-	LIQUIDITYTRANSFORMER_AMOUNT,
-	WCSPR_ADDRESS,
-	SYNTHETIC_CSPR_PACKAGE,
-	PAIR_ADDRESS,
+	WASM_PATH,
+	MASTER_KEY_PAIR_PATH,
+	INSTALL_PAYMENT_AMOUNT,
+	CONTRACT_NAME,
+	AMOUNT,
+	WCSPR_PACKAGE_HASH,
+	SYNTHETIC_CSPR_PACKAGE_HASH,
+	PAIR_PACKAGE_HASH,
 	ROUTER_PACKAGE_HASH,
 	WISETOKEN_PACKAGE_HASH,
 } = process.env;
 
 const KEYS = Keys.Ed25519.parseKeyFiles(
-	`${LIQUIDITYTRANSFORMER_MASTER_KEY_PAIR_PATH}/public_key.pem`,
-	`${LIQUIDITYTRANSFORMER_MASTER_KEY_PAIR_PATH}/secret_key.pem`
+	`${MASTER_KEY_PAIR_PATH}/public_key.pem`,
+	`${MASTER_KEY_PAIR_PATH}/secret_key.pem`
 );
 
 const test = async () => {
@@ -39,15 +39,15 @@ const test = async () => {
 
 	const installDeployHash = await liquidity.install(
 		KEYS,
-		LIQUIDITYTRANSFORMER_AMOUNT!,
-		WCSPR_ADDRESS!,
-		SYNTHETIC_CSPR_PACKAGE!,
-		PAIR_ADDRESS!,
+		AMOUNT!,
+		WCSPR_PACKAGE_HASH!,
+		SYNTHETIC_CSPR_PACKAGE_HASH!,
+		PAIR_PACKAGE_HASH!,
 		ROUTER_PACKAGE_HASH!,
 		WISETOKEN_PACKAGE_HASH!,
-		LIQUIDITYTRANSFORMER_CONTRACT_NAME!,
-		LIQUIDITYTRANSFORMER_INSTALL_PAYMENT_AMOUNT!,
-		LIQUIDITYTRANSFORMER_WASM_PATH!
+		CONTRACT_NAME!,
+		INSTALL_PAYMENT_AMOUNT!,
+		WASM_PATH!
 	);
 
 	console.log(`... Contract installation deployHash: ${installDeployHash}`);
@@ -63,14 +63,14 @@ const test = async () => {
 
 	const contractHash = await utils.getAccountNamedKeyValue(
 		accountInfo,
-		`${LIQUIDITYTRANSFORMER_CONTRACT_NAME!}_contract_hash`
+		`${CONTRACT_NAME!}_contract_hash`
 	);
 
 	console.log(`... Contract Hash: ${contractHash}`);
 
 	const packageHash = await utils.getAccountNamedKeyValue(
 		accountInfo,
-		`${LIQUIDITYTRANSFORMER_CONTRACT_NAME!}_package_hash`
+		`${CONTRACT_NAME!}_package_hash`
 	);
 
 	console.log(`... Package Hash: ${packageHash}`);
