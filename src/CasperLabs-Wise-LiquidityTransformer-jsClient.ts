@@ -146,65 +146,6 @@ class LIQUIDITYClient {
 		}, {});
 	}
 
-	public async setSettings(
-		keys: Keys.AsymmetricKey,
-		wiseToken: string,
-		uniswapPair: string,
-		syntheticCspr: string,
-		paymentAmount: string
-	) {
-		const wisetoken = new CLByteArray(
-			Uint8Array.from(Buffer.from(wiseToken, "hex"))
-		);
-		const uniswappair = new CLByteArray(
-			Uint8Array.from(Buffer.from(uniswapPair, "hex"))
-		);
-		const syntheticcspr = new CLByteArray(
-			Uint8Array.from(Buffer.from(syntheticCspr, "hex"))
-		);
-		const runtimeArgs = RuntimeArgs.fromMap({
-			wise_token: CLValueBuilder.key(wisetoken),
-			uniswap_pair: CLValueBuilder.key(uniswappair),
-			synthetic_cspr: CLValueBuilder.key(syntheticcspr),
-		});
-
-		const deployHash = await contractCall({
-			chainName: this.chainName,
-			contractHash: this.contractHash,
-			entryPoint: "set_settings",
-			paymentAmount,
-			nodeAddress: this.nodeAddress,
-			keys: keys,
-			runtimeArgs,
-		});
-
-		if (deployHash !== null) {
-			return deployHash;
-		} else {
-			throw Error("Invalid Deploy");
-		}
-	}
-
-	public async renounceKeeper(keys: Keys.AsymmetricKey, paymentAmount: string) {
-		const runtimeArgs = RuntimeArgs.fromMap({});
-
-		const deployHash = await contractCall({
-			chainName: this.chainName,
-			contractHash: this.contractHash,
-			entryPoint: "renounce_keeper",
-			paymentAmount,
-			nodeAddress: this.nodeAddress,
-			keys: keys,
-			runtimeArgs,
-		});
-
-		if (deployHash !== null) {
-			return deployHash;
-		} else {
-			throw Error("Invalid Deploy");
-		}
-	}
-
 	public async reserveWise(
 		keys: Keys.AsymmetricKey,
 		packageHash: string,
@@ -301,8 +242,6 @@ class LIQUIDITYClient {
 		}
 	}
 
-	/* Prerequisite Calls */
-	// forward_liquidity		liquidity_transfomer => pair
 	public async getMyTokens(keys: Keys.AsymmetricKey, paymentAmount: string) {
 		const runtimeArgs = RuntimeArgs.fromMap({});
 		const deployHash = await contractCall({
@@ -349,41 +288,155 @@ class LIQUIDITYClient {
 		}
 	}
 
-	/* Prerequisite Calls */
-	// forward_liquidity		liquidity_transfomer => pair
-	public async payoutInvestorAddress(investorAddress: CLPublicKey) {
-		const investor_address = Buffer.from(
-			investorAddress.toAccountHash()
-		).toString("hex");
-		const result = await utils.contractDictionaryGetter(
-			this.nodeAddress,
-			investor_address,
-			"payout_investor_address"
+	public async payoutInvestorAddress(
+		keys: Keys.AsymmetricKey,
+		packageHash: string,
+		sessionWasmPath: string,
+		paymentAmount: string,
+		investorAddress: string
+	) {
+		const ltPackageHash = new CLByteArray(
+			Uint8Array.from(Buffer.from(packageHash, "hex"))
 		);
-		const maybeValue = result.value().unwrap();
-		return maybeValue.value().toString();
+		const investorAddressHash = new CLByteArray(
+			Uint8Array.from(Buffer.from(investorAddress, "hex"))
+		);
+		const runtimeArgs = RuntimeArgs.fromMap({
+			package_hash: CLValueBuilder.key(ltPackageHash),
+			entrypoint: CLValueBuilder.string("payout_investor_address"),
+			investor_address: CLValueBuilder.key(investorAddressHash),
+		});
+		const deployHash = await installWasmFile({
+			chainName: this.chainName,
+			paymentAmount,
+			nodeAddress: this.nodeAddress,
+			keys,
+			pathToContract: sessionWasmPath,
+			runtimeArgs,
+		});
+		if (deployHash !== null) {
+			return deployHash;
+		} else {
+			throw Error("Invalid Deploy");
+		}
 	}
 
-	public async preparePath(tokenAddress: CLPublicKey) {
-		const token_address = Buffer.from(tokenAddress.toAccountHash()).toString(
-			"hex"
+	public async preparePath(
+		keys: Keys.AsymmetricKey,
+		packageHash: string,
+		sessionWasmPath: string,
+		paymentAmount: string,
+		tokenAddress: string
+	) {
+		const ltPackageHash = new CLByteArray(
+			Uint8Array.from(Buffer.from(packageHash, "hex"))
 		);
-		const result = await utils.contractDictionaryGetter(
-			this.nodeAddress,
-			token_address,
-			"prepare_path"
+		const tokenAddressHash = new CLByteArray(
+			Uint8Array.from(Buffer.from(tokenAddress, "hex"))
 		);
-		const maybeValue = result.value().unwrap();
-		return maybeValue.value().toString();
+		const runtimeArgs = RuntimeArgs.fromMap({
+			package_hash: CLValueBuilder.key(ltPackageHash),
+			entrypoint: CLValueBuilder.string("prepare_path"),
+			token_address: CLValueBuilder.key(tokenAddressHash),
+		});
+		const deployHash = await installWasmFile({
+			chainName: this.chainName,
+			paymentAmount,
+			nodeAddress: this.nodeAddress,
+			keys,
+			pathToContract: sessionWasmPath,
+			runtimeArgs,
+		});
+		if (deployHash !== null) {
+			return deployHash;
+		} else {
+			throw Error("Invalid Deploy");
+		}
 	}
 
-	public async currentWiseDay() {
-		const result = await utils.contractDictionaryGetter(
-			this.nodeAddress,
-			this.contractHash,
-			"current_wise_day"
+	public async currentStakeableDay(
+		keys: Keys.AsymmetricKey,
+		packageHash: string,
+		sessionWasmPath: string,
+		paymentAmount: string
+	) {
+		const ltPackageHash = new CLByteArray(
+			Uint8Array.from(Buffer.from(packageHash, "hex"))
 		);
-		return result.value().toString();
+		const runtimeArgs = RuntimeArgs.fromMap({
+			package_hash: CLValueBuilder.key(ltPackageHash),
+			entrypoint: CLValueBuilder.string("current_stakeable_day"),
+		});
+		const deployHash = await installWasmFile({
+			chainName: this.chainName,
+			paymentAmount,
+			nodeAddress: this.nodeAddress,
+			keys,
+			pathToContract: sessionWasmPath,
+			runtimeArgs,
+		});
+		if (deployHash !== null) {
+			return deployHash;
+		} else {
+			throw Error("Invalid Deploy");
+		}
+	}
+
+	public async setSettings(
+		keys: Keys.AsymmetricKey,
+		paymentAmount: string,
+		wiseToken: string,
+		uniswapPair: string,
+		syntheticCspr: string
+	) {
+		const wisetoken = new CLByteArray(
+			Uint8Array.from(Buffer.from(wiseToken, "hex"))
+		);
+		const uniswappair = new CLByteArray(
+			Uint8Array.from(Buffer.from(uniswapPair, "hex"))
+		);
+		const syntheticcspr = new CLByteArray(
+			Uint8Array.from(Buffer.from(syntheticCspr, "hex"))
+		);
+		const runtimeArgs = RuntimeArgs.fromMap({
+			wise_token: CLValueBuilder.key(wisetoken),
+			uniswap_pair: CLValueBuilder.key(uniswappair),
+			synthetic_cspr: CLValueBuilder.key(syntheticcspr),
+		});
+		const deployHash = await contractCall({
+			chainName: this.chainName,
+			contractHash: this.contractHash,
+			entryPoint: "set_settings",
+			paymentAmount,
+			nodeAddress: this.nodeAddress,
+			keys: keys,
+			runtimeArgs,
+		});
+		if (deployHash !== null) {
+			return deployHash;
+		} else {
+			throw Error("Invalid Deploy");
+		}
+	}
+
+	public async renounceKeeper(keys: Keys.AsymmetricKey, paymentAmount: string) {
+		const runtimeArgs = RuntimeArgs.fromMap({});
+
+		const deployHash = await contractCall({
+			chainName: this.chainName,
+			contractHash: this.contractHash,
+			entryPoint: "renounce_keeper",
+			paymentAmount,
+			nodeAddress: this.nodeAddress,
+			keys: keys,
+			runtimeArgs,
+		});
+
+		if (deployHash !== null) {
+			return deployHash;
+		} else {
+			throw Error("Invalid Deploy");
+		}
 	}
 }
 
@@ -479,7 +532,6 @@ const contractSimpleGetter = async (
 		contractHash,
 		key
 	);
-
 	if (clValue && clValue.CLValue instanceof CLValue) {
 		return clValue.CLValue!;
 	} else {
