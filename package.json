@@ -1,5 +1,5 @@
 {
-  "name": "casper-liquidity",
+  "name": "casper-liquidity-transformer",
   "version": "1.0.0",
   "description": "initial Package",
   "main": "dist/index.js",
@@ -33,10 +33,10 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/Scytalelabs-official/Casperlabs-UniswapV2Core-jsClient.git"
+    "url": "git+https://github.com/Scytalelabs-official/CasperLabs-Wise-LiquidityTransformer-jsClient"
   },
   "bugs": {
-    "url": "https://github.com/Scytalelabs-official/Casperlabs-UniswapV2Core-jsClient/issues"
+    "url": "https://github.com/Scytalelabs-official/CasperLabs-Wise-LiquidityTransformer-jsClient/issues"
   },
-  "homepage": "https://github.com/Scytalelabs-official/Casperlabs-UniswapV2Core-jsClient#readme"
+  "homepage": "https://github.com/Scytalelabs-official/CasperLabs-Wise-LiquidityTransformer-jsClient#readme"
 }
